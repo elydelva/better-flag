@@ -1,0 +1,101 @@
+---
+title: Plugins
+description: Extend the engine with overrides, rate limiting, rules, audit, and custom evaluators.
+icon: Puzzle
+---
+
+## What are plugins?
+
+**Plugins** extend the engine with evaluators, schema contributions, and services. Evaluators run in the pipeline (by priority, highest first). The first evaluator that returns a result wins.
+
+**When to use**: Add plugins when you need overrides (manual per-context values), rate limiting, targeting rules, or audit. The core includes schedule and rollout; plugins add the rest.
+
+## FlagPlugin interface
+
+```ts
+interface FlagPlugin {
+  name: string;
+  version?: string;
+  evaluators?: Array<{
+    priority: number;
+    evaluate: (flag: Flag, context: EvaluationContext) => Promise<{ value: FlagValue; reason: EvalReason } | null>;
+  }>;
+  createServices?: (engine: FlagEngine) => Record<string, unknown>;
+  schemaContribution?: SchemaContribution;
+  init?: (engine: FlagEngine) => Promise<void> | void;
+}
+```
+
+- **evaluators** — Run in the pipeline. Return a result to short-circuit, or `null` to continue.
+- **createServices** — Attach services to the engine (e.g. `engine.getPlugin("overrides")`).
+- **schemaContribution** — Add tables for Drizzle/Prisma (overrides, rules, audit).
+- **init** — Run once at engine init.
+
+## Adding a plugin
+
+```ts
+import { betterFlag } from "@better-flag/core";
+import { createInMemoryFlagAdapter } from "@better-flag/adapter-memory";
+import { createOverridesPlugin } from "@better-flag/plugin-overrides";
+import { createRateLimitPlugin } from "@better-flag/plugin-rate-limit";
+
+const flagEngine = betterFlag({
+  adapter: createInMemoryFlagAdapter(),
+  plugins: [
+    createOverridesPlugin(),
+    createRateLimitPlugin({ limit: 100 }),
+  ],
+});
+```
+
+## Plugin packages
+
+| Plugin | Package | When to use |
+|--------|---------|-------------|
+| [Overrides](/docs/plugins/overrides) | `@better-flag/plugin-overrides` | Manual per-context overrides (e.g. force true for user X) |
+| [Rate Limit](/docs/plugins/rate-limit) | `@better-flag/plugin-rate-limit` | Limit POST /flags/evaluate requests per client |
+| [Rules](/docs/plugins/rules) | `@better-flag/plugin-rules` | Targeting rules (schema for Drizzle) |
+| [Audit](/docs/plugins/audit) | `@better-flag/plugin-audit` | Change history (schema for Drizzle) |
+
+## Evaluator priority
+
+Evaluators run by **priority** (highest first). Default order:
+
+1. Overrides (1000)
+2. Rules / targeting
+3. Schedule
+4. Rollout
+5. Default
+
+## Custom plugins
+
+Create a plugin with evaluators:
+
+```ts
+import type { FlagPlugin } from "@better-flag/core";
+
+export function createMyPlugin(): FlagPlugin {
+  return {
+    name: "my-plugin",
+    version: "1.0.0",
+    evaluators: [
+      {
+        priority: 500,
+        evaluate: async (flag, context) => {
+          if (context.attributes?.beta === true) {
+            return { value: true, reason: { kind: "rule", ruleIndex: 0 } };
+          }
+          return null;
+        },
+      },
+    ],
+  };
+}
+```
+
+## Next steps
+
+- [Overrides](/docs/plugins/overrides) — Manual overrides
+- [Rate Limit](/docs/plugins/rate-limit) — Throttle evaluate
+- [Rules](/docs/plugins/rules) — Targeting rules
+- [Audit](/docs/plugins/audit) — Change history

@@ -1,0 +1,39 @@
+---
+title: Rules Plugin
+description: Targeting rules — schema contribution for bf_rules table.
+---
+
+## Installation
+
+```bash
+bun add @better-flag/plugin-rules
+```
+
+## Usage
+
+```ts
+import { betterFlag } from "@better-flag/core";
+import { createRulesPlugin } from "@better-flag/plugin-rules";
+
+const flagEngine = betterFlag({
+  adapter,
+  plugins: [createRulesPlugin()],
+});
+```
+
+## Schema
+
+The plugin contributes a `rules` table:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | text | Primary key |
+| flagKey | text | Flag key |
+| priority | integer | Rule priority |
+| conditions | jsonb | Targeting conditions |
+| value | jsonb | Value when rule matches |
+| createdAt | timestamp | Creation time |
+
+## Status
+
+Schema only — full evaluator implementation for rules stored in DB is in development. Use flag-level `rules` on the Flag object for now.

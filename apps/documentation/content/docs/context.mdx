@@ -1,0 +1,78 @@
+---
+title: Evaluation Context
+description: Context passed to flag evaluation — userId, attributes.
+icon: User
+---
+
+## What is the context?
+
+The **context** is the data passed to `evaluate(key, context)`. It typically includes `userId` and `attributes` (plan, country, appVersion, etc.). The evaluation pipeline uses it for overrides, targeting rules, and rollout hashing.
+
+The context is **never** read from the request directly by the core. It is **injected** by your handler via `getContext`, and optionally merged with the request body when using the HTTP API.
+
+## EvaluationContext type
+
+```ts
+interface EvaluationContext {
+  userId?: string;
+  attributes?: Record<string, FlagValue>;
+}
+```
+
+You can extend it with custom fields. `attributes` values can be `string`, `number`, `boolean`, or JSON.
+
+## Where does the context come from?
+
+| Source | When | How |
+|--------|------|-----|
+| **getContext** | Every request (HTTP) | Handler calls `getContext(req)` and merges with body |
+| **Request body** | `POST /flags/evaluate` | Body can include `context: { userId, attributes }` — merged with getContext |
+| **Programmatic** | `engine.evaluate(key, context)` | You pass the full context yourself |
+
+**Merging rule**: For HTTP, `mergedContext = { ...body.context, ...getContext(req) }`. getContext overrides body for overlapping keys. This lets the client pass `attributes` while the server provides `userId` from the session.
+
+## userId
+
+- Used for **consistent hashing** in rollout and variant evaluation
+- Used by **overrides plugin** as the context key (by default)
+- Optional — if absent, rollout may fall back to default
+
+## attributes
+
+Arbitrary key-value pairs for **targeting rules**:
+
+- `country`, `plan`, `appVersion`, `tenantId`, etc.
+- Values can be `string`, `number`, `boolean`, or JSON
+
+## Providing context
+
+Handlers use `getContext` to map the HTTP request to `EvaluationContext`:
+
+```ts
+createHonoHandler(flagEngine, {
+  basePath: "/flags",
+  getContext: async (c) => {
+    const session = await getSession(c);
+    if (!session?.user) return null;
+    return {
+      userId: session.user.id,
+      attributes: {
+        plan: session.user.plan,
+        country: session.user.country,
+      },
+    };
+  },
+  requireAuth: true,
+});
+```
+
+For public routes (e.g. list flags), `getContext` can return `null` if `requireAuth` is false for those routes.
+
+## requireAuth
+
+When `requireAuth: true`, the handler returns **401 Unauthorized** if `getContext` returns `null` or `undefined` for routes that need context (e.g. evaluate). Use this when all evaluation endpoints must be authenticated.
+
+## Next steps
+
+- [Express](/docs/express), [Hono](/docs/hono), [Next.js](/docs/next) — Framework-specific setup
+- [Targeting](/docs/targeting) — Rules use `attributes`

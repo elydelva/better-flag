@@ -1,0 +1,85 @@
+---
+title: Next.js
+description: Mount the flags API with handler-next.
+---
+
+## When to use
+
+Use the Next.js handler when your app uses **Next.js App Router**. The handler returns route handlers (`GET`, `POST`, `PATCH`, `DELETE`) that you export from a catch-all route file.
+
+## Installation
+
+```bash
+bun add @better-flag/core @better-flag/adapter-memory @better-flag/handler-next
+```
+
+## Setup
+
+1. Create the engine (see [Installation](/docs/installation)).
+2. Create a catch-all route at `app/api/flags/[[...path]]/route.ts`.
+3. Export the handler's methods. The `basePath` must match the prefix before the catch-all segment.
+
+```ts title="app/api/flags/[[...path]]/route.ts"
+import { flagEngine } from "@/lib/flags";
+import { createNextHandler } from "@better-flag/handler-next";
+
+const handler = createNextHandler(flagEngine, { basePath: "/api/flags" });
+
+export const GET = handler.GET;
+export const POST = handler.POST;
+export const PATCH = handler.PATCH;
+export const DELETE = handler.DELETE;
+```
+
+**basePath**: With `basePath: "/api/flags"`, requests to `/api/flags`, `/api/flags/new-feature`, `/api/flags/evaluate` are routed correctly. The catch-all `[[...path]]` captures the rest of the path.
+
+## getContext
+
+The callback receives `req: NextRequest`. Use `cookies()`, `headers()`, or your auth library to get the session.
+
+```ts title="app/api/flags/[[...path]]/route.ts"
+import { flagEngine } from "@/lib/flags";
+import { createNextHandler } from "@better-flag/handler-next";
+import { auth } from "@/lib/auth";
+
+const handler = createNextHandler(flagEngine, {
+  basePath: "/api/flags",
+  getContext: async (req) => {
+    const session = await auth.api.getSession({ headers: req.headers });
+    if (!session?.user) return null;
+    return {
+      userId: session.user.id,
+      attributes: { plan: session.user.plan },
+    };
+  },
+  requireAuth: true,
+});
+
+export const GET = handler.GET;
+export const POST = handler.POST;
+export const PATCH = handler.PATCH;
+export const DELETE = handler.DELETE;
+```
+
+**Note**: For Better Auth, use `auth.api.getSession({ headers: req.headers })`. For other auth libraries, adapt accordingly.
+
+## Options
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `basePath` | `string` | Path prefix (e.g. `/api/flags`). Must match the route path before the catch-all. |
+| `getContext` | `(req: NextRequest) => EvaluationContext \| null \| Promise<...>` | Extract context from request. Return `null` when unauthenticated. |
+| `requireAuth` | `boolean` | If `true`, return 401 when `getContext` returns `null` for evaluate routes |
+
+## Routes exposed
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `{basePath}` | List all flags |
+| `POST` | `{basePath}` | Create flag |
+| `GET` | `{basePath}/:key` | Get flag by key |
+| `PATCH` | `{basePath}/:key` | Update flag |
+| `DELETE` | `{basePath}/:key` | Delete flag |
+| `POST` | `{basePath}/evaluate` | Evaluate flag(s) |
+
+See [API Reference](/docs/api) for request/response formats.

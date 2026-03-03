@@ -1,0 +1,36 @@
+{
+  "name": "better-flags",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Headless feature flags engine for TypeScript — flags, rollout, targeting, adapters. Interface-first like Better Auth.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/elydelva/better-flags"
+  },
+  "workspaces": ["packages/*", "packages/examples/*", "apps/*"],
+  "scripts": {
+    "build": "bun run --filter './packages/*' --filter './packages/examples/*' --filter './apps/*' build",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "check": "biome check --write .",
+    "typecheck": "tsc --noEmit",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "publish:packages": "changeset publish",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@changesets/cli": "^2.27.10",
+    "bun-types": "^1.2.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.10",
+    "typescript": "^5.7.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": "biome check --write"
+  }
+}

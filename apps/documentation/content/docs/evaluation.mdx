@@ -1,0 +1,77 @@
+---
+title: Evaluation
+description: How flags are evaluated — plugin pipeline, reasons, and flow.
+icon: Zap
+---
+
+## When evaluation runs
+
+Evaluation runs when you call `engine.evaluate(key, context)` or `POST /flags/evaluate`. The pipeline determines the value for the given context.
+
+## Evaluation flow
+
+Evaluation runs through a pipeline of **plugin evaluators** (by priority, highest first):
+
+1. **Overrides** (plugin-overrides) — Manual per-context override. If set, returns immediately.
+2. **Rules** (plugin-rules) — Targeting rules (conditions). First matching rule wins.
+3. **Schedule** — Time-based activation. If outside window, returns disabled/default.
+4. **Rollout** — Percentage-based gradual release. Deterministic hash decides on/off or variant.
+5. **Default** — `defaultValue` or disabled value.
+
+The first evaluator that returns a result wins. If none match, the default is used.
+
+## Evaluation result
+
+```ts
+interface EvaluationResult<T> {
+  value: T;
+  reason: EvalReason;
+}
+```
+
+## EvalReason
+
+| Kind | Description |
+|------|-------------|
+| `disabled` | Flag is disabled |
+| `override` | Manual override for this context |
+| `rule` | Targeting rule matched (`ruleIndex`) |
+| `segment` | Segment matched (`segmentId`) |
+| `rollout` | Rollout bucket (`percentage`) |
+| `schedule` | Schedule active/inactive |
+| `default` | Fell through to default |
+| `error` | Evaluation error (`message`) |
+
+Use `reason` for debugging, analytics, or UI (e.g. "You're in the treatment group").
+
+## Schedule
+
+Time-based activation via `schedule`:
+
+```ts
+{
+  schedule: {
+    start: "2025-01-01T00:00:00Z",
+    end: "2025-01-31T23:59:59Z",
+  },
+}
+```
+
+- **start**: ISO 8601 — flag activates at or after this time
+- **end**: ISO 8601 — flag deactivates after this time
+
+Outside the window, the flag returns the disabled/default value.
+
+## Server vs client
+
+- **Server**: `engine.evaluate(key, context)` — direct, no HTTP. Use in middleware, route handlers, background jobs.
+- **Client**: `client.evaluate.one(key, context)` — HTTP POST to `/flags/evaluate`. Use in frontends, BFFs, or services that call the API.
+
+Both return `EvaluationResult<T>`.
+
+## Next steps
+
+- [Flag](/docs/flag) — Flag structure
+- [Rollout](/docs/rollout) — Percentage rollout
+- [Targeting](/docs/targeting) — Context-based rules
+- [Context](/docs/context) — Evaluation context

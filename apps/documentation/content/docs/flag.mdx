@@ -1,0 +1,78 @@
+---
+title: Flag
+description: Flag structure, types, and configuration — boolean, string, number, json, variant.
+icon: Flag
+---
+
+## What is a flag?
+
+A **flag** is a named configuration with a type, default value, and optional rules (rollout, schedule, targeting). The evaluation pipeline determines the value for a given context.
+
+**When to use**: Create flags for feature toggles, A/B tests, config values, or any value that varies by user or context.
+
+## Flag interface
+
+```ts
+interface Flag {
+  key: string;
+  type: FlagType;
+  defaultValue: FlagValue;
+  variants?: FlagVariant[];
+  enabled?: boolean;
+  description?: string;
+  rollout?: RolloutConfig;
+  schedule?: ScheduleConfig;
+  rules?: TargetingRule[];
+  metadata?: Record<string, unknown>;
+}
+```
+
+## Flag types
+
+| Type | Description | Example `defaultValue` |
+|------|-------------|------------------------|
+| `boolean` | On/off toggle | `true`, `false` |
+| `string` | String value | `"blue"`, `"v2"` |
+| `number` | Numeric value | `10`, `100` |
+| `json` | Arbitrary JSON object | `{ "theme": "dark" }` |
+| `variant` | A/B test variant with weights | See [Variant](#variant-flags) |
+
+## Variant flags
+
+For A/B testing, use `type: "variant"` with `variants`:
+
+```ts
+{
+  key: "checkout-theme",
+  type: "variant",
+  defaultValue: "control",
+  variants: [
+    { key: "control", value: "control", weight: 50 },
+    { key: "treatment", value: "treatment", weight: 50 },
+  ],
+}
+```
+
+Weights are relative (e.g. 50/50 or 70/30). Evaluation uses deterministic hashing based on `userId` and flag key. Same user + same flag = same variant every time.
+
+## Enabled
+
+When `enabled: false`, the flag always returns the disabled value (typically `false` for boolean, or a safe default). Use for kill switches — turn off a feature globally without deleting the flag.
+
+## Rollout
+
+See [Rollout](/docs/rollout) for percentage-based gradual release. Use `rollout: { percentage, seed }` on boolean or variant flags.
+
+## Schedule
+
+See [Evaluation](/docs/evaluation) for time-based activation via `schedule.start` and `schedule.end`. Use for campaigns, maintenance windows, or date-bound features.
+
+## Rules
+
+See [Targeting](/docs/targeting) for context-based targeting rules. Use `rules` to match on `attributes` (country, plan, appVersion, etc.).
+
+## Next steps
+
+- [Evaluation](/docs/evaluation) — How the pipeline evaluates
+- [Rollout](/docs/rollout) — Percentage rollout
+- [Targeting](/docs/targeting) — Context-based rules

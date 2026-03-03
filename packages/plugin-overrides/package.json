@@ -1,0 +1,26 @@
+{
+  "name": "@better-flag/plugin-overrides",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@better-flag/core": "workspace:*",
+    "@better-flag/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@better-flag/adapter-memory": "workspace:*",
+    "typescript": "^5.7.0"
+  },
+  "files": ["dist"]
+}

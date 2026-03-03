@@ -1,0 +1,54 @@
+---
+title: Overrides Plugin
+description: Manual per-context flag overrides — highest priority evaluator.
+---
+
+## Installation
+
+```bash
+bun add @better-flag/plugin-overrides
+```
+
+## Usage
+
+```ts
+import { betterFlag } from "@better-flag/core";
+import { createOverridesPlugin } from "@better-flag/plugin-overrides";
+
+const flagEngine = betterFlag({
+  adapter,
+  plugins: [createOverridesPlugin()],
+});
+```
+
+## Options
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `store` | OverridesStore | Custom store (default: in-memory) |
+| `getContextKey` | (context) => string \| null | Key for override lookup (default: `userId`) |
+
+## OverridesStore
+
+Default: `createInMemoryOverridesStore()`. Implement `OverridesStore` for persistence:
+
+```ts
+interface OverridesStore {
+  get(flagKey: string, contextKey: string): Promise<FlagValue | null>;
+  set(flagKey: string, contextKey: string, value: FlagValue): Promise<void>;
+  delete(flagKey: string, contextKey: string): Promise<void>;
+}
+```
+
+## Accessing Overrides
+
+The plugin exposes `overrides` via `engine.getPlugin("overrides")` or `createServices`:
+
+```ts
+const overrides = flagEngine.getPlugin<OverridesStore>("overrides");
+await overrides?.set("new-feature", "user-123", true);
+```
+
+## Schema
+
+For Drizzle/Prisma, the plugin contributes an `overrides` table. Use the CLI to generate schema.

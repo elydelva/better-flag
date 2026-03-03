@@ -1,0 +1,68 @@
+---
+title: Configuration
+description: FlagConfig interface — adapter, plugins, tablePrefix, bootstrap.
+---
+
+## FlagConfig
+
+```ts
+interface FlagConfig {
+  adapter: FlagAdapter;
+  plugins?: FlagPlugin[];
+  tablePrefix?: string;
+  generateId?: () => string;
+  bootstrap?: (adapter: FlagAdapter) => Promise<void>;
+  security?: Record<string, unknown>;
+}
+```
+
+## Options
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `adapter` | FlagAdapter | **Required.** Storage adapter. |
+| `plugins` | FlagPlugin[] | Plugins (overrides, rate-limit, rules, audit). |
+| `tablePrefix` | string | Table prefix for Drizzle (default: `bf_`). |
+| `generateId` | () => string | ID generator (default: `crypto.randomUUID`). |
+| `bootstrap` | (adapter) => Promise&lt;void&gt; | Seed flags on init. Run once at startup. |
+| `security` | Record&lt;string, unknown&gt; | Security config (reserved). |
+
+## bootstrap
+
+Use `bootstrap` to seed flags when using the in-memory adapter for development, or to ensure default flags exist:
+
+```ts
+bootstrap: async (adapter) => {
+  await adapter.flags.set({
+    key: "welcome-banner",
+    type: "boolean",
+    defaultValue: true,
+    enabled: true,
+  });
+},
+```
+
+**When it runs**: At `flagEngine.init()`. For in-memory, this populates the store. For Drizzle/Redis, it runs before the first request; use it to create flags if they don't exist.
+
+## Example
+
+```ts title="lib/flags.ts"
+import { betterFlag } from "@better-flag/core";
+import { createInMemoryFlagAdapter } from "@better-flag/adapter-memory";
+import { createOverridesPlugin } from "@better-flag/plugin-overrides";
+
+const flagEngine = betterFlag({
+  adapter: createInMemoryFlagAdapter(),
+  plugins: [createOverridesPlugin()],
+  tablePrefix: "bf_",
+  generateId: () => crypto.randomUUID(),
+  bootstrap: async (adapter) => {
+    await adapter.flags.set({
+      key: "welcome-banner",
+      type: "boolean",
+      defaultValue: true,
+      enabled: true,
+    });
+  },
+});
+```

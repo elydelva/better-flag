@@ -1,0 +1,32 @@
+{
+  "name": "@better-flag/handler-express",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@better-agnostic/handler-express": "^0.0.3",
+    "@better-flag/core": "workspace:*",
+    "@better-flag/types": "workspace:*"
+  },
+  "peerDependencies": {
+    "express": ">=4.0.0"
+  },
+  "devDependencies": {
+    "@better-flag/adapter-memory": "workspace:*",
+    "@types/express": "^4.17.21",
+    "express": "^4.21.0",
+    "typescript": "^5.7.0"
+  },
+  "files": ["dist"]
+}

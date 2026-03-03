@@ -1,0 +1,34 @@
+{
+  "name": "@better-flag/errors",
+  "version": "0.0.1",
+  "description": "Error classes for better-flags",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/elydelva/better-flags",
+    "directory": "packages/errors"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@better-agnostic/errors": "^0.0.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  },
+  "files": ["dist"]
+}

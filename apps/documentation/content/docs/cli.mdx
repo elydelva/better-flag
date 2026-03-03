@@ -1,0 +1,58 @@
+---
+title: CLI
+description: bf — schema generation and migrations.
+---
+
+## When to use
+
+Use the CLI when:
+- **Drizzle adapter** — Generate schema and run migrations for the flags tables
+- **Plugin tables** — Overrides, rules, audit plugins add tables; the CLI includes them
+- **Schema discovery** — The CLI finds your engine config and extracts schema from it
+
+## Installation
+
+```bash
+bun add -D @better-flag/cli
+```
+
+## Usage
+
+```bash
+bunx bf generate --adapter drizzle
+bunx bf migrate
+```
+
+## Config discovery
+
+The CLI looks for a config file exporting the flag engine:
+
+- **Config names**: `flag.ts`, `flags.ts`
+- **Search dirs**: `.`, `src`, `lib`, `app`, `server`
+- **Export names**: `default`, `engine`, `flag`, `flags`, `bf`
+
+Example:
+
+```ts title="lib/flags.ts"
+import { betterFlag } from "@better-flag/core";
+import { createInMemoryFlagAdapter } from "@better-flag/adapter-memory";
+
+export const flagEngine = betterFlag({
+  adapter: createInMemoryFlagAdapter(),
+});
+
+export default flagEngine;
+```
+
+**Note**: For `bf generate`, the adapter in config should be Drizzle (or the CLI needs to know the target). For in-memory, generate may still work if you have a Drizzle config elsewhere.
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `bf generate --adapter drizzle` | Generate Drizzle schema from engine + plugins |
+| `bf migrate` | Run migrations (adapter-specific) |
+
+## Schema contributors
+
+Plugins with `schemaContribution` (overrides, rules, audit) add tables to the generated schema. The engine's `getSchemaConfigForCLI()` provides `tablePrefix` and contributors.

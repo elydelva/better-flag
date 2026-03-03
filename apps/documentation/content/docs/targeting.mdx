@@ -1,0 +1,86 @@
+---
+title: Targeting
+description: Context-based targeting rules with conditions and operators.
+icon: Crosshair
+---
+
+## When to use
+
+Use targeting when:
+- **User segments** — Enable for users in France, or on pro/enterprise plan
+- **App version** — Enable for users on app v2.0+
+- **Custom attributes** — Any key-value from `context.attributes`
+
+Rules are evaluated in order. First matching rule wins.
+
+## How it works
+
+Rules are OR of AND conditions. A rule matches if **all** its conditions match.
+
+```ts
+rules: [
+  [{ attribute: "country", operator: "eq", value: "FR" }],
+  [{ attribute: "plan", operator: "in", value: ["pro", "enterprise"] }],
+]
+```
+
+If the first rule matches OR the second matches, the rule result is returned.
+
+## Condition operators
+
+| Operator | Description | Example |
+|----------|-------------|---------|
+| `eq` | Equals | `{ attribute: "country", operator: "eq", value: "FR" }` |
+| `neq` | Not equals | |
+| `in` | In array | `{ attribute: "plan", operator: "in", value: ["pro", "enterprise"] }` |
+| `nin` | Not in array | |
+| `contains` | String/array contains | |
+| `startsWith` | String starts with | |
+| `endsWith` | String ends with | |
+| `gt`, `gte`, `lt`, `lte` | Numeric comparison | |
+| `matches` | Regex match | |
+| `semver_gt`, `semver_gte`, `semver_lt`, `semver_lte` | Semver comparison | |
+
+## Evaluation context
+
+Conditions are evaluated against `context.attributes`:
+
+```ts
+const context: EvaluationContext = {
+  userId: "user-123",
+  attributes: {
+    country: "FR",
+    plan: "pro",
+    appVersion: "1.2.0",
+  },
+};
+```
+
+Ensure your handler's `getContext` populates `attributes` from the session, headers, or request.
+
+## Example
+
+```ts
+{
+  key: "beta-feature",
+  type: "boolean",
+  defaultValue: false,
+  rules: [
+    [
+      { attribute: "country", operator: "eq", value: "FR" },
+      { attribute: "plan", operator: "in", value: ["pro", "enterprise"] },
+    ],
+    [
+      { attribute: "appVersion", operator: "semver_gte", value: "2.0.0" },
+    ],
+  ],
+}
+```
+
+French pro/enterprise users OR users on app v2+ get the feature.
+
+## Next steps
+
+- [Context](/docs/context) — How attributes are provided
+- [Evaluation](/docs/evaluation) — Rule order in pipeline
+- [Flag](/docs/flag) — Flag structure

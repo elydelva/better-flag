@@ -1,0 +1,41 @@
+---
+title: Rate Limit Plugin
+description: Limit POST /flags/evaluate requests per client.
+---
+
+## Installation
+
+```bash
+bun add @better-flag/plugin-rate-limit
+```
+
+## Usage
+
+```ts
+import { betterFlag } from "@better-flag/core";
+import { createRateLimitPlugin } from "@better-flag/plugin-rate-limit";
+
+const flagEngine = betterFlag({
+  adapter,
+  plugins: [
+    createRateLimitPlugin({
+      limit: 100,
+      windowMs: 60_000,
+    }),
+  ],
+});
+```
+
+## Options
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `store` | RateLimitStore | Custom store (default: in-memory) |
+| `limit` | number | Max evaluations per window (default: 100) |
+| `windowMs` | number | Window in ms (default: 60000) |
+
+## Behavior
+
+- Limits **POST /flags/evaluate** requests per client (by IP or auth context)
+- Returns **429** with `Retry-After` when exceeded
+- Uses `RateLimitStore` for persistence (implement for multi-node)

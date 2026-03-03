@@ -1,0 +1,56 @@
+---
+title: Architecture
+description: Interface-first — core has no framework/ORM knowledge; adapters and handlers inject implementations.
+---
+
+## Package layers
+
+```
+types/         → Shared domain types (Flag, EvaluationContext, EvaluationResult, etc.). Used by core, client, adapters.
+core/          → Pure engine. Interfaces. Evaluation pipeline. Zero external imports.
+adapters/      → Concrete implementations of FlagAdapter. Memory, file, Redis, Drizzle.
+handlers/      → Optional HTTP bridges. Next.js, Hono, Express, Fastify. Take FlagEngine, expose routes.
+client/        → Type-safe HTTP client. createBetterFlagClient.
+plugins/       → Extensions: overrides, rate-limit, rules, audit. Evaluators, schema, services.
+cli/           → Schema generation and migrations. bf generate, bf migrate.
+```
+
+## Types package
+
+`@better-flag/types` provides shared domain types:
+
+- `Flag`, `FlagType`, `FlagValue`, `FlagVariant`
+- `RolloutConfig`, `ScheduleConfig`
+- `EvaluationContext`, `EvaluationResult`, `EvalReason`
+- `Condition`, `ConditionOperator`, `TargetingRule`
+
+Import from `@better-flag/types` or `@better-flag/core` (re-exports).
+
+## Extensibility
+
+The engine is designed for plugins that add:
+
+- **Evaluators** — Priority-ordered evaluation (overrides, rules, rollout, default)
+- **Routes** — Merged with core routes (if needed)
+- **Services** — Attached via `createServices` (e.g. `engine.getPlugin("overrides")`)
+- **Schema** — Tables via `schemaContribution` for Drizzle/Prisma
+
+## FlagAdapter interface
+
+The core defines this interface. The adapter implements it.
+
+| Area | Methods |
+|------|---------|
+| **flags** | `get`, `getAll`, `set`, `delete` |
+| **extensions** | Optional (e.g. `getPluginData` for Redis) |
+| **subscribe** | Optional change notifications |
+| **onReady** | Initialize before use |
+
+## Design principles
+
+1. **Core pure** — No framework, ORM, or runtime in core. Testable without DB or HTTP.
+2. **Interfaces-first** — Core defines interfaces; adapters implement them.
+3. **Evaluators = pipeline** — Plugin evaluators run by priority; first match wins.
+4. **Zero vendor** — No external SaaS required.
+5. **Type-safety end-to-end** — Flag types flow from config to client.
+6. **Schema language** — Plugins contribute schema; CLI generates Drizzle/Prisma.

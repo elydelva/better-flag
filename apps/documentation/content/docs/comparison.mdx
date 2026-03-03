@@ -1,0 +1,43 @@
+---
+title: Comparison
+description: How better-flags compares to building from scratch, third-party SDKs, and custom solutions.
+icon: Scale
+---
+
+## vs. Building from Scratch
+
+| Aspect | From Scratch | better-flags |
+|--------|--------------|--------------|
+| **Evaluation pipeline** | Implement override, rules, rollout logic | Built-in plugin-based evaluators with priority |
+| **Storage** | Lock-in to one DB | Adapter pattern — memory, file, Redis, Drizzle |
+| **Framework** | Coupled to one stack | Handler per framework (Next, Express, Hono, Fastify) |
+| **Targeting** | Custom condition parsing | Built-in operators (eq, in, semver, matches, etc.) |
+| **Rollout** | Manual bucketing | Deterministic `hashToPercentage` with seed |
+
+## vs. Third-Party Feature Flag SaaS (LaunchDarkly, Unleash, etc.)
+
+| Aspect | Third-Party SaaS | better-flags |
+|--------|------------------|--------------|
+| **Ownership** | Your data lives in their infra | Your DB, your rules |
+| **Customization** | Limited by their API | Full control — plugins, custom evaluators |
+| **Cost** | Per-seat / MAU pricing | Free, self-hosted |
+| **Vendor lock-in** | High | None — pure interfaces, swap adapters |
+| **Offline** | Requires network | Works with in-memory or file adapter |
+
+## vs. Simple Config / Env Vars
+
+| Aspect | Config / Env | better-flags |
+|--------|--------------|--------------|
+| **Per-user** | Not supported | Overrides, targeting rules, rollout |
+| **Dynamic** | Requires deploy | Update via API, adapter sync |
+| **A/B testing** | Manual | Variant flags with weights |
+| **Audit** | None | Plugin-based audit log |
+
+## Philosophy Alignment
+
+**better-flags** follows the same design principles as **Better Auth** and **better-conversation**:
+
+- **Interface-first** — Core defines contracts; adapters implement them.
+- **Zero vendor** — No external service required.
+- **Framework-agnostic** — Works with any HTTP-based backend.
+- **Type-safe** — End-to-end TypeScript with inferred flag types.

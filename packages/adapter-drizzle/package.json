@@ -1,0 +1,30 @@
+{
+  "name": "@better-flag/adapter-drizzle",
+  "version": "0.0.1",
+  "description": "Drizzle ORM adapter for better-flags (PostgreSQL + SQLite)",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@better-agnostic/adapter": "^0.0.3",
+    "@better-agnostic/adapter-drizzle": "^0.0.3",
+    "@better-agnostic/schema": "^0.0.3",
+    "@better-flag/core": "workspace:*",
+    "@better-flag/types": "workspace:*",
+    "drizzle-orm": "^0.45.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  },
+  "files": ["dist"]
+}

@@ -1,0 +1,180 @@
+---
+title: Installation
+description: Install the core package, adapter, and handler for your stack.
+icon: Download
+---
+
+## Prerequisites
+
+- **Bun** (recommended), Node.js 18+, or compatible runtime
+- A storage backend (in-memory for dev, Redis/Drizzle for production)
+- An existing app with Express, Fastify, Hono, or Next.js
+
+## Step 1: Install packages
+
+Install the core, adapter, and handler for your framework. The handler exposes the HTTP API (`GET /flags`, `POST /flags/evaluate`, etc.).
+
+<CodeBlockTabs defaultValue="hono">
+  <CodeBlockTabsList>
+    <CodeBlockTabsTrigger value="hono">Hono</CodeBlockTabsTrigger>
+    <CodeBlockTabsTrigger value="next">Next.js</CodeBlockTabsTrigger>
+    <CodeBlockTabsTrigger value="express">Express</CodeBlockTabsTrigger>
+    <CodeBlockTabsTrigger value="fastify">Fastify</CodeBlockTabsTrigger>
+  </CodeBlockTabsList>
+  <CodeBlockTab value="hono">
+
+```bash
+bun add @better-flag/core @better-flag/adapter-memory @better-flag/handler-hono
+```
+
+  </CodeBlockTab>
+  <CodeBlockTab value="next">
+
+```bash
+bun add @better-flag/core @better-flag/adapter-memory @better-flag/handler-next
+```
+
+  </CodeBlockTab>
+  <CodeBlockTab value="express">
+
+```bash
+bun add @better-flag/core @better-flag/adapter-memory @better-flag/handler-express
+```
+
+  </CodeBlockTab>
+  <CodeBlockTab value="fastify">
+
+```bash
+bun add @better-flag/core @better-flag/adapter-memory @better-flag/handler-fastify
+```
+
+  </CodeBlockTab>
+</CodeBlockTabs>
+
+## Step 2: Create the engine
+
+Create the flag engine in a shared module (e.g. `lib/flags.ts`). This file will be imported by your handler and by any server-side code that needs to evaluate flags directly.
+
+```ts title="lib/flags.ts"
+import { betterFlag } from "@better-flag/core";
+import { createInMemoryFlagAdapter } from "@better-flag/adapter-memory";
+
+export const flagEngine = betterFlag({
+  adapter: createInMemoryFlagAdapter(),
+});
+```
+
+**Important**: The engine requires `init()` before handling requests. Call `await flagEngine.init()` at startup — it loads flags from the adapter and prepares the evaluation pipeline. For production, use a persistent adapter (Drizzle, Redis). See [Adapters](/docs/adapters).
+
+## Step 3: Mount the handler
+
+Mount the handler so that HTTP requests to `/flags/*` are routed to the engine. The handler:
+- Parses the request (GET, POST, PATCH, DELETE)
+- Calls `getContext` to inject userId/attributes from your auth layer (optional)
+- Dispatches to the engine and returns the result
+
+<CodeBlockTabs defaultValue="hono">
+  <CodeBlockTabsList>
+    <CodeBlockTabsTrigger value="hono">Hono</CodeBlockTabsTrigger>
+    <CodeBlockTabsTrigger value="next">Next.js</CodeBlockTabsTrigger>
+    <CodeBlockTabsTrigger value="express">Express</CodeBlockTabsTrigger>
+    <CodeBlockTabsTrigger value="fastify">Fastify</CodeBlockTabsTrigger>
+  </CodeBlockTabsList>
+  <CodeBlockTab value="hono">
+
+```ts title="app.ts"
+import { Hono } from "hono";
+import { flagEngine } from "@/lib/flags";
+import { createHonoHandler } from "@better-flag/handler-hono";
+
+const app = new Hono();
+
+// Mount under /flags — requests to /flags, /flags/:key, /flags/evaluate, etc.
+app.route("/flags", createHonoHandler(flagEngine, {
+  basePath: "/flags",
+  getContext: (c) => c.get("user") ? { userId: c.get("user").id, attributes: {} } : null,
+}));
+```
+
+**Note**: `c` is the Hono context. Use `c.get("user")` if a middleware sets the user. See [Hono](/docs/hono) for details.
+
+  </CodeBlockTab>
+  <CodeBlockTab value="next">
+
+```ts title="app/api/flags/[[...path]]/route.ts"
+import { flagEngine } from "@/lib/flags";
+import { createNextHandler } from "@better-flag/handler-next";
+
+const handler = createNextHandler(flagEngine, { basePath: "/api/flags" });
+
+export const GET = handler.GET;
+export const POST = handler.POST;
+export const PATCH = handler.PATCH;
+export const DELETE = handler.DELETE;
+```
+
+**Note**: Create a catch-all route at `app/api/flags/[[...path]]/route.ts`. The `basePath` must match the prefix before the handler routes. See [Next.js](/docs/next) for cookies, auth header, etc.
+
+  </CodeBlockTab>
+  <CodeBlockTab value="express">
+
+```ts title="app.ts"
+import express from "express";
+import { flagEngine } from "@/lib/flags";
+import { createExpressHandler } from "@better-flag/handler-express";
+
+const app = express();
+app.use(express.json());
+
+// Mount under /flags
+app.use("/flags", createExpressHandler(flagEngine, {
+  basePath: "/flags",
+  getContext: (req) =>
+    req.user ? { userId: req.user.id, attributes: req.user.attributes ?? {} } : null,
+}));
+```
+
+**Note**: `req.user` is typically set by an auth middleware (passport, custom JWT, etc.). See [Express](/docs/express) for details.
+
+  </CodeBlockTab>
+  <CodeBlockTab value="fastify">
+
+```ts title="app.ts"
+import Fastify from "fastify";
+import { flagEngine } from "@/lib/flags";
+import { createFastifyHandler } from "@better-flag/handler-fastify";
+
+const app = Fastify();
+await app.register(createFastifyHandler(flagEngine, { basePath: "/flags" }));
+```
+
+**Note**: Fastify uses async registration. Fastify parses JSON by default. See [Fastify](/docs/fastify) for details.
+
+  </CodeBlockTab>
+</CodeBlockTabs>
+
+## Step 4: Initialize the engine
+
+Before handling requests, call `init()`:
+
+```ts title="app.ts or init.ts"
+await flagEngine.init();
+```
+
+This loads flags from the adapter. For in-memory, it starts empty. For Drizzle/Redis, it fetches existing flags.
+
+## Step 5: Verify
+
+After mounting and initializing, you should have:
+
+- `GET /flags` — returns `{ flags: [] }` (empty initially)
+- `POST /flags` — create a flag (body: `{ key, type, defaultValue }`)
+- `POST /flags/evaluate` — body `{ key: "my-flag", context: { userId: "u1" } }` returns `{ value, reason }`
+
+See [API Reference](/docs/api) for full route list.
+
+## Next steps
+
+- [Basic Usage](/docs/basic-usage) — Create flags and evaluate
+- [Context](/docs/context) — Understand `getContext` and evaluation context
+- [Adapters](/docs/adapters) — Drizzle, Redis for production

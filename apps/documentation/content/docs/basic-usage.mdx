@@ -1,0 +1,139 @@
+---
+title: Basic Usage
+description: Create flags, evaluate for a context, and use the client — step-by-step guide.
+icon: Play
+---
+
+## Overview
+
+better-flags works in two modes:
+
+1. **HTTP (client)** — Use the client to create flags, evaluate, and manage via REST API. Ideal for frontends, admin UIs, or services that call the flags API.
+2. **Server-side** — Call `engine.evaluate(key, context)` directly in your server code. No HTTP, no client. Use when you need to check a flag in middleware, a route handler, or background jobs.
+
+Both use the same engine and evaluation pipeline. The client simply wraps the HTTP API.
+
+## Setup
+
+Assume you have the engine mounted at `/flags` and a client:
+
+```ts title="lib/flag-client.ts"
+import { createBetterFlagClient } from "@better-flag/client";
+
+const client = createBetterFlagClient({
+  baseURL: "http://localhost:3000/flags",
+});
+```
+
+**When to use the client**: For frontends, BFFs, or any code that runs outside the server process. For server-side code in the same process, use `engine.evaluate` directly.
+
+## 1. Create a flag
+
+Flags have a key, type, and default value:
+
+```ts title="example.ts"
+const flag = await client.flags.create({
+  key: "new-checkout",
+  type: "boolean",
+  defaultValue: false,
+  description: "New checkout flow",
+});
+
+console.log(flag.key); // "new-checkout"
+```
+
+**Types**: `boolean`, `string`, `number`, `json`, `variant`. See [Flag](/docs/flag) for structure.
+
+## 2. List flags
+
+```ts title="example.ts"
+const flags = await client.flags.list();
+```
+
+Returns all flags from the adapter. For in-memory, this is what you've created in this process. For Drizzle/Redis, it's persisted.
+
+## 3. Evaluate a flag
+
+Evaluate for a given context (userId, attributes):
+
+```ts title="example.ts"
+const result = await client.evaluate.one("new-checkout", {
+  userId: "user-123",
+  attributes: { country: "FR", plan: "pro" },
+});
+
+console.log(result.value); // true | false
+console.log(result.reason); // { kind: "default" } | { kind: "override" } | ...
+```
+
+**Context merging**: When using the HTTP handler with `getContext`, the handler merges the request's context with `getContext(req)`. For the client, you pass the full context in the request body. See [Context](/docs/context).
+
+## 4. Evaluate multiple flags
+
+```ts title="example.ts"
+const results = await client.evaluate.forContext(
+  { userId: "user-123", attributes: {} },
+  ["new-checkout", "max-items"]
+);
+
+console.log(results["new-checkout"].value);
+console.log(results["max-items"].value);
+```
+
+Useful for fetching several flags in one request (e.g. for a dashboard or feature matrix).
+
+## 5. Update a flag
+
+```ts title="example.ts"
+await client.flags.update("new-checkout", {
+  defaultValue: true,
+  rollout: { percentage: 50, seed: "userId" },
+});
+```
+
+You can update `defaultValue`, `rollout`, `schedule`, `rules`, `enabled`, etc. See [Flag](/docs/flag) and [Rollout](/docs/rollout).
+
+## 6. Delete a flag
+
+```ts title="example.ts"
+await client.flags.delete("new-checkout");
+```
+
+## Server-side evaluation
+
+When your code runs on the same server as the engine, evaluate directly (no HTTP):
+
+```ts title="server.ts"
+import { flagEngine } from "@/lib/flags";
+
+const result = await flagEngine.evaluate("new-checkout", {
+  userId: "user-123",
+  attributes: { plan: "pro" },
+});
+
+if (result.value) {
+  // Feature is on for this user
+}
+```
+
+**When to use**: Middleware, route handlers, background jobs, cron. Avoid HTTP round-trip.
+
+## HTTP API summary
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/flags` | List all flags |
+| `POST` | `/flags` | Create flag |
+| `GET` | `/flags/:key` | Get flag by key |
+| `PATCH` | `/flags/:key` | Update flag |
+| `DELETE` | `/flags/:key` | Delete flag |
+| `POST` | `/flags/evaluate` | Evaluate flag(s) |
+
+See [API Reference](/docs/api) for request/response formats.
+
+## Next steps
+
+- [Flag](/docs/flag) — Flag types and structure
+- [Evaluation](/docs/evaluation) — Evaluation pipeline and reasons
+- [Context](/docs/context) — Evaluation context and getContext
+- [Client](/docs/client) — Full client API

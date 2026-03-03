@@ -1,0 +1,48 @@
+---
+title: Memory Adapter
+description: In-memory flag storage — volatile, zero deps. Use for tests or development.
+---
+
+## When to use
+
+Use the memory adapter when:
+- **Developing** — No database setup required
+- **Testing** — Fast, isolated, no cleanup needed between tests
+- **E2E** — Single-process tests with full CRUD
+
+**Do not use in production** — Data is lost on restart and not shared across instances.
+
+## Installation
+
+```bash
+bun add @better-flag/adapter-memory
+```
+
+## Usage
+
+```ts
+import { betterFlag } from "@better-flag/core";
+import { createInMemoryFlagAdapter } from "@better-flag/adapter-memory";
+
+const flagEngine = betterFlag({
+  adapter: createInMemoryFlagAdapter(),
+});
+```
+
+## Behavior
+
+- **Volatile** — Data is lost when the process exits
+- **Zero deps** — No external storage
+- **Independent store** — Each `createInMemoryFlagAdapter()` call creates a new Map. Multiple engines = separate stores unless you share the adapter instance.
+- **Fast** — No I/O
+
+## Use cases
+
+- Local development
+- Unit and integration tests
+- E2E tests with bootstrap (create flags at startup, then run tests)
+
+## Next steps
+
+- [Drizzle](/docs/drizzle) or [Redis](/docs/redis) — Production persistence
+- [Adapters](/docs/adapters) — Overview

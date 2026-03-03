@@ -1,0 +1,39 @@
+---
+title: Audit Plugin
+description: Change history — schema contribution for bf_audit_log table.
+---
+
+## Installation
+
+```bash
+bun add @better-flag/plugin-audit
+```
+
+## Usage
+
+```ts
+import { betterFlag } from "@better-flag/core";
+import { createAuditPlugin } from "@better-flag/plugin-audit";
+
+const flagEngine = betterFlag({
+  adapter,
+  plugins: [createAuditPlugin()],
+});
+```
+
+## Schema
+
+The plugin contributes an `audit_log` table:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | text | Primary key |
+| event | text | Event type (e.g. flag_created, flag_updated) |
+| entityType | text | Entity type (e.g. flag) |
+| entityId | text | Entity ID (e.g. flag key) |
+| payload | jsonb | Event payload |
+| createdAt | timestamp | Creation time |
+
+## Status
+
+Schema only — hooks (onFlagCreated, onFlagUpdated, onFlagDeleted) for writing to audit log are in development.

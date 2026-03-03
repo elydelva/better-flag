@@ -1,0 +1,65 @@
+---
+title: Redis Adapter
+description: Redis storage via Bun.redis — production, multi-node, pub/sub.
+---
+
+## When to use
+
+Use the Redis adapter when:
+- **Production** — Persist flags in Redis
+- **Multi-node** — Multiple server instances share the same flags
+- **Pub/sub** — Need change notifications when flags are updated
+
+**Requires Bun** — Uses `Bun.redis`. For Node.js, use the Drizzle adapter or a custom Redis adapter.
+
+## Installation
+
+```bash
+bun add @better-flag/adapter-redis
+```
+
+## Usage
+
+```ts
+import { betterFlag } from "@better-flag/core";
+import { createRedisFlagAdapter } from "@better-flag/adapter-redis";
+
+const flagEngine = betterFlag({
+  adapter: createRedisFlagAdapter("redis://localhost:6379"),
+});
+```
+
+Or with an existing Redis client:
+
+```ts
+import { RedisClient } from "bun";
+
+const redis = new RedisClient("redis://localhost:6379");
+const flagEngine = betterFlag({
+  adapter: createRedisFlagAdapter(redis, { keyPrefix: "bf:" }),
+});
+```
+
+## Options
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `keyPrefix` | string | Key prefix for flags (default: `bf:`) |
+
+## Behavior
+
+- **Bun.redis** — Uses Bun's built-in Redis client
+- **Pub/sub** — `subscribe(callback)` for change notifications (set/delete). Use to invalidate caches when flags change.
+- **Plugin data** — `extensions.getPluginData`, `setPluginData`, `deletePluginData` for plugin storage (e.g. overrides)
+- **Multi-node** — Shared storage across processes
+
+## Key layout
+
+- Flags: `{keyPrefix}{flagKey}` (e.g. `bf:new-feature`)
+- Plugin data: `{keyPrefix}ext:{pluginKey}:{flagKey}`
+- Pub channel: `{keyPrefix}updates`
+
+## Next steps
+
+- [Drizzle](/docs/drizzle) — Alternative for PostgreSQL/SQLite
+- [Adapters](/docs/adapters) — Overview

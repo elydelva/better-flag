@@ -1,0 +1,57 @@
+---
+title: API Reference
+description: HTTP routes relative to handler base path (e.g. /flags).
+---
+
+## Overview
+
+When you mount the better-flags handler (Express, Fastify, Hono, Next.js), it exposes HTTP routes. The base path is configurable (e.g. `/flags`). All routes are under that path.
+
+## Flags
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/flags` | List all flags |
+| POST | `/flags` | Create flag |
+| GET | `/flags/:key` | Get flag by key |
+| PATCH | `/flags/:key` | Update flag |
+| DELETE | `/flags/:key` | Delete flag |
+
+## Evaluate
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/flags/evaluate` | Evaluate flag(s) for context |
+
+**Request body:**
+
+```json
+{
+  "key": "new-feature",
+  "context": {
+    "userId": "user-123",
+    "attributes": { "plan": "pro" }
+  }
+}
+```
+
+For multiple flags, pass an array or use the batch format (see client docs).
+
+**Response:**
+
+```json
+{
+  "value": true,
+  "reason": { "kind": "default" }
+}
+```
+
+## Request / response
+
+- **POST / PATCH**: Body as JSON. `Content-Type: application/json`.
+- **Success**: 200 with JSON body, or 204 No Content.
+- **Error**: 4xx/5xx with `{ message: string, code?: string }` body.
+
+## Context merging
+
+When using `getContext`, the handler merges the request body's `context` with `getContext(req)`. Auth context overrides body for overlapping keys. This lets the client pass `attributes` while the server provides `userId` from the session.

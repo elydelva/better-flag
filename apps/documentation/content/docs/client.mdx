@@ -1,0 +1,106 @@
+---
+title: Client
+description: HTTP client for the flags API — createBetterFlagClient.
+---
+
+## When to use
+
+Use the client when:
+- **Frontend** — Your React/Vue/Svelte app calls the flags API to evaluate or manage flags
+- **BFF** — Your backend-for-frontend calls the flags service
+- **Microservices** — One service delegates flag checks to another
+
+**Alternative**: If your app and flags run in the same process, use `engine.evaluate` directly. The client is for HTTP-based access.
+
+## Installation
+
+```bash
+bun add @better-flag/client
+```
+
+## Usage
+
+```ts
+import { createBetterFlagClient } from "@better-flag/client";
+
+const client = createBetterFlagClient({
+  baseURL: "http://localhost:3000/flags",
+});
+```
+
+## Options
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `baseURL` | string | Base URL for the flags API |
+| `getHeaders` | () => Record&lt;string, string&gt; \| Promise&lt;...&gt; | Optional headers (e.g. auth) |
+| `fetchFn` | typeof fetch | Custom fetch implementation |
+
+## API
+
+### flags.list()
+
+```ts
+const flags: Flag[] = await client.flags.list();
+```
+
+### flags.get(key)
+
+```ts
+const flag: Flag | null = await client.flags.get("new-feature");
+```
+
+### flags.create(flag)
+
+```ts
+const created = await client.flags.create({
+  key: "new-feature",
+  type: "boolean",
+  defaultValue: false,
+});
+```
+
+### flags.update(key, patch)
+
+```ts
+await client.flags.update("new-feature", { defaultValue: true });
+```
+
+### flags.delete(key)
+
+```ts
+await client.flags.delete("new-feature");
+```
+
+### evaluate.one(key, context)
+
+```ts
+const result = await client.evaluate.one("new-feature", {
+  userId: "user-123",
+  attributes: { plan: "pro" },
+});
+// { value: boolean, reason: EvalReason }
+```
+
+### evaluate.forContext(context, keys?)
+
+```ts
+const results = await client.evaluate.forContext(
+  { userId: "user-123" },
+  ["new-feature", "max-items"]
+);
+// Record<string, EvaluationResult>
+```
+
+## With auth
+
+When the API requires authentication, pass headers:
+
+```ts
+const client = createBetterFlagClient({
+  baseURL: "http://localhost:3000/flags",
+  getHeaders: async () => ({
+    Authorization: `Bearer ${await getToken()}`,
+  }),
+});
+```

@@ -1,0 +1,92 @@
+---
+title: Express
+description: Mount the flags API with handler-express.
+---
+
+## When to use
+
+Use the Express handler when your app is built with **Express**. The handler handles all routes under the base path (`/flags/*`).
+
+## Installation
+
+```bash
+bun add @better-flag/core @better-flag/adapter-memory @better-flag/handler-express
+```
+
+## Setup
+
+1. Create the engine (see [Installation](/docs/installation)).
+2. Mount the handler with `app.use()`. The handler must receive JSON bodies, so ensure `express.json()` is applied before it.
+
+```ts title="app.ts"
+import express from "express";
+import { flagEngine } from "@/lib/flags";
+import { createExpressHandler } from "@better-flag/handler-express";
+
+const app = express();
+app.use(express.json());
+
+app.use("/flags", createExpressHandler(flagEngine, {
+  basePath: "/flags",
+  getContext: (req) =>
+    req.user ? { userId: req.user.id, attributes: req.user.attributes ?? {} } : null,
+  requireAuth: false,
+}));
+
+await flagEngine.init();
+app.listen(3000);
+```
+
+**basePath**: The handler expects requests at `{basePath}`, `{basePath}/:key`, `{basePath}/evaluate`, etc. With `basePath: "/flags"`, the full paths are `/flags`, `/flags/:key`, `/flags/evaluate`.
+
+## getContext
+
+The callback receives `req: Request` (Express request). The user is usually set by an auth middleware that runs before the flags handler.
+
+<CodeBlockTabs defaultValue="session">
+  <CodeBlockTabsList>
+    <CodeBlockTabsTrigger value="session">Session</CodeBlockTabsTrigger>
+    <CodeBlockTabsTrigger value="jwt">JWT</CodeBlockTabsTrigger>
+  </CodeBlockTabsList>
+  <CodeBlockTab value="session">
+
+```ts
+// With express-session, passport, or similar
+getContext: (req) =>
+  req.user ? { userId: req.user.id, attributes: { plan: req.user.plan } } : null,
+```
+
+  </CodeBlockTab>
+  <CodeBlockTab value="jwt">
+
+```ts
+// With passport-jwt or custom JWT middleware that sets req.user
+getContext: (req) =>
+  req.user ? { userId: req.user.sub, attributes: req.user } : null,
+```
+
+  </CodeBlockTab>
+</CodeBlockTabs>
+
+**Order matters**: Your auth middleware must run before the flags handler. Mount it earlier in the middleware chain.
+
+## Options
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `basePath` | `string` | Path prefix (e.g. `/flags`) |
+| `getContext` | `(req: Request) => EvaluationContext \| null` | Extract context from request. Return `null` when unauthenticated. |
+| `requireAuth` | `boolean` | If `true`, return 401 when `getContext` returns `null` for evaluate routes |
+
+## Routes exposed
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `{basePath}` | List all flags |
+| `POST` | `{basePath}` | Create flag |
+| `GET` | `{basePath}/:key` | Get flag by key |
+| `PATCH` | `{basePath}/:key` | Update flag |
+| `DELETE` | `{basePath}/:key` | Delete flag |
+| `POST` | `{basePath}/evaluate` | Evaluate flag(s) |
+
+See [API Reference](/docs/api) for request/response formats.

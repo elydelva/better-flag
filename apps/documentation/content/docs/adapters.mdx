@@ -1,0 +1,56 @@
+---
+title: Adapters
+description: Storage backends for flags — memory, file, Redis, Drizzle.
+icon: Database
+---
+
+## What are adapters?
+
+**Adapters** implement the `FlagAdapter` interface. The core has no knowledge of storage — you inject an adapter via config when creating the engine.
+
+**When to use**: You must choose an adapter. The engine cannot run without one. Use in-memory for dev/tests; use file, Redis, or Drizzle for persistence.
+
+## How it works
+
+1. The core defines the `FlagAdapter` interface: `flags.get`, `flags.getAll`, `flags.set`, `flags.delete`.
+2. You create an adapter instance (`createInMemoryFlagAdapter`, `drizzleAdapter`, etc.).
+3. You pass it to `betterFlag({ adapter })`.
+4. At `init()`, the engine optionally calls `adapter.onReady()`. Flags are loaded on demand when evaluating or listing.
+
+## FlagAdapter interface
+
+```ts
+interface FlagAdapter {
+  flags: {
+    get: (key: string) => Promise<Flag | null>;
+    getAll: () => Promise<Flag[]>;
+    set: (flag: Flag) => Promise<void>;
+    delete: (key: string) => Promise<void>;
+  };
+  extensions?: Record<string, unknown>;
+  onReady?: () => Promise<void>;
+}
+```
+
+## Available adapters
+
+| Adapter | Package | Use Case |
+|---------|---------|----------|
+| [Memory](/docs/memory) | `@better-flag/adapter-memory` | Tests, development |
+| [File](/docs/file) | `@better-flag/adapter-file` | Simple persistence, single-node |
+| [Redis](/docs/redis) | `@better-flag/adapter-redis` | Production, multi-node, pub/sub |
+| [Drizzle](/docs/drizzle) | `@better-flag/adapter-drizzle` | PostgreSQL, SQLite |
+
+## Choosing an adapter
+
+- **Development / tests**: `adapter-memory` — zero deps, volatile, no DB required.
+- **Single server, simple**: `adapter-file` — JSON file, no DB. Data survives restarts but not shared across instances.
+- **Multi-node, production**: `adapter-redis` or `adapter-drizzle` — shared storage across instances.
+- **Already using Drizzle**: `adapter-drizzle` — same DB, same migrations. Use `buildFlagsSchema` for schema.
+
+## Next steps
+
+- [Memory](/docs/memory) — In-memory adapter
+- [File](/docs/file) — File adapter
+- [Redis](/docs/redis) — Redis adapter
+- [Drizzle](/docs/drizzle) — Drizzle adapter

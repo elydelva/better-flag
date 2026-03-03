@@ -1,0 +1,54 @@
+---
+title: Introduction
+description: Headless TypeScript feature flags engine — flags, rollout, targeting, adapters. Interface-first like Better Auth.
+---
+
+## What is better-flags?
+
+better-flags is a **headless feature flags engine** for TypeScript/JavaScript applications. It lets you define **flags** (boolean, string, variant, etc.) with rollout, targeting, and schedule — without coupling to a specific framework or database.
+
+**Use it when** you need to:
+- Toggle features for users (gradual rollout, A/B tests)
+- Target users by country, plan, app version, or custom attributes
+- Expose flags via HTTP for frontends or microservices
+- Self-host with your own storage (no SaaS)
+
+## Features
+
+| Feature | Description |
+|---------|-------------|
+| **Flags** | Typed values — boolean, string, number, json, variant |
+| **Evaluation** | Plugin-based pipeline with overrides, rules, rollout, schedule |
+| **Targeting** | Conditions (eq, in, semver, etc.) for user/context-based rules |
+| **Rollout** | Deterministic percentage rollout via consistent hashing |
+| **Adapters** | In-memory, file, Redis, Drizzle — you choose the storage |
+| **Client** | HTTP client for flags API, fully typed |
+| **Handlers** | Express, Fastify, Hono, Next.js — mount the API in your stack |
+
+## How it works
+
+1. **Create flags** via the API or adapter. Each flag has a key, type, default value, and optional rules (rollout, schedule, targeting).
+2. **Inject context** via your handler's `getContext`: userId, attributes (plan, country, etc.) — whatever your auth layer provides.
+3. **Evaluate** by calling `engine.evaluate(key, context)` or `POST /flags/evaluate`.
+4. **Pipeline** runs: overrides → rules → schedule → rollout → default. First match wins.
+
+## Core principles
+
+- **Pure core** — The core has no knowledge of Express, Next.js, Drizzle, or Redis. It works exclusively with **TypeScript interfaces** that you inject via config.
+- **Interface-first** — Core defines contracts; adapters and handlers implement them.
+- **Zero vendor** — No external SaaS required; self-hosted, your data.
+- **Framework-agnostic** — Works with Express, Fastify, Hono, Next.js via handlers.
+
+## Runtime support
+
+Works on Node.js 18+, Bun, Deno, Edge runtimes, and workers. Zero external service required.
+
+## Next steps
+
+- [Comparison](/docs/comparison) — See how better-flags compares to alternatives
+- [Installation](/docs/installation) — Install and mount the handler in your project
+- [Basic Usage](/docs/basic-usage) — Create flags and evaluate
+- [Flag](/docs/flag) — Flag structure and types
+- [Evaluation](/docs/evaluation) — Pipeline and reasons
+- [Context](/docs/context) — Evaluation context and getContext
+- [Plugins](/docs/plugins) — Overrides, rate-limit, rules, audit

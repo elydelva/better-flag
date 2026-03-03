@@ -1,0 +1,75 @@
+---
+title: Hono
+description: Mount the flags API with handler-hono.
+---
+
+## When to use
+
+Use the Hono handler when your app is built with **Hono**. The handler returns a Hono app that handles all routes under the base path (`/flags/*`).
+
+## Installation
+
+```bash
+bun add @better-flag/core @better-flag/adapter-memory @better-flag/handler-hono
+```
+
+## Setup
+
+1. Create the engine (see [Installation](/docs/installation)).
+2. Mount the handler with `app.route()`. The handler returns a Hono app, so you attach it as a route.
+
+```ts title="app.ts"
+import { Hono } from "hono";
+import { flagEngine } from "@/lib/flags";
+import { createHonoHandler } from "@better-flag/handler-hono";
+
+const app = new Hono();
+
+app.route("/flags", createHonoHandler(flagEngine, {
+  basePath: "/flags",
+  getContext: (c) => c.get("user") ? { userId: c.get("user").id, attributes: {} } : null,
+}));
+
+await flagEngine.init();
+Bun.serve({ fetch: app.fetch, port: 3000 });
+```
+
+**basePath**: The handler expects requests at `{basePath}`, `{basePath}/:key`, `{basePath}/evaluate`, etc. With `basePath: "/flags"`, the full paths are `/flags`, `/flags/:key`, `/flags/evaluate`.
+
+## getContext
+
+The callback receives `c` (Hono context). Use `c.get("user")` if a middleware sets the user.
+
+```ts
+getContext: (c) => {
+  const user = c.get("user");
+  if (!user) return null;
+  return {
+    userId: user.id,
+    attributes: { plan: user.plan, country: user.country },
+  };
+},
+```
+
+**Note**: `c` is the Hono context. Ensure your auth middleware runs before the flags handler and sets the user via `c.set("user", user)`.
+
+## Options
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `basePath` | `string` | Path prefix (e.g. `/flags`) |
+| `getContext` | `(c: Context) => EvaluationContext \| null` | Extract context from Hono context. Return `null` when unauthenticated. |
+| `requireAuth` | `boolean` | If `true`, return 401 when `getContext` returns `null` for evaluate routes |
+
+## Routes exposed
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `{basePath}` | List all flags |
+| `POST` | `{basePath}` | Create flag |
+| `GET` | `{basePath}/:key` | Get flag by key |
+| `PATCH` | `{basePath}/:key` | Update flag |
+| `DELETE` | `{basePath}/:key` | Delete flag |
+| `POST` | `{basePath}/evaluate` | Evaluate flag(s) |
+
+See [API Reference](/docs/api) for request/response formats.

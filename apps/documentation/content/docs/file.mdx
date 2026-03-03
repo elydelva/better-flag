@@ -1,0 +1,63 @@
+---
+title: File Adapter
+description: JSON file storage for flags — simple persistence, single-process.
+---
+
+## When to use
+
+Use the file adapter when:
+- **Single server** — One process, no need for shared storage
+- **Simple persistence** — Data survives restarts, no DB setup
+- **Development** — Persist flags between dev server restarts
+
+**Do not use for multi-node** — No locking; concurrent writes from multiple processes can corrupt the file.
+
+## Installation
+
+```bash
+bun add @better-flag/adapter-file
+```
+
+## Usage
+
+```ts
+import { betterFlag } from "@better-flag/core";
+import { createFileFlagAdapter } from "@better-flag/adapter-file";
+
+const flagEngine = betterFlag({
+  adapter: createFileFlagAdapter("./data/flags.json"),
+});
+```
+
+## Behavior
+
+- **Persistent** — Flags stored in a JSON file. Data survives process restarts.
+- **Bun.file** — Uses `Bun.file` and `Bun.write` (Bun runtime)
+- **Single-process** — No locking; not suitable for multi-node deployments
+- **Lazy load** — Reads on first access, writes on each mutation
+
+## File format
+
+The file stores an array of flags:
+
+```json
+[
+  {
+    "key": "new-feature",
+    "type": "boolean",
+    "defaultValue": false,
+    "enabled": true
+  }
+]
+```
+
+## Use cases
+
+- Simple single-server deployments
+- Development with persistence (no DB)
+- Backup/restore via file copy
+
+## Next steps
+
+- [Redis](/docs/redis) or [Drizzle](/docs/drizzle) — Multi-node production
+- [Adapters](/docs/adapters) — Overview

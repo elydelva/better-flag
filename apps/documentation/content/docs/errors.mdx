@@ -1,0 +1,44 @@
+---
+title: Errors
+description: Error classes and HTTP status codes.
+---
+
+## When errors occur
+
+- **Flag not found** — You call `evaluate("missing-key", context)` and the flag does not exist.
+- **Validation** — Invalid flag data (e.g. create/update with wrong type).
+- **Evaluation** — Evaluation failed (e.g. plugin threw).
+- **Rate limit** — Too many evaluate requests (plugin-rate-limit).
+
+## Error classes
+
+| Error | Code | HTTP Status | When |
+|-------|------|-------------|------|
+| `FlagError` | — | — | Base class |
+| `FlagNotFoundError` | `FLAG_NOT_FOUND` | 404 | Flag key not found |
+| `FlagValidationError` | `FLAG_VALIDATION_ERROR` | 400 | Invalid flag data |
+| `FlagEvaluationError` | `FLAG_EVALUATION_ERROR` | 500 | Evaluation failed |
+| `FlagRateLimitError` | `RATE_LIMIT` | 429 | Rate limit exceeded |
+
+## Usage
+
+```ts
+import {
+  FlagNotFoundError,
+  FlagValidationError,
+  FlagEvaluationError,
+  FlagRateLimitError,
+} from "@better-flag/errors";
+
+try {
+  await flagEngine.evaluate("missing", context);
+} catch (e) {
+  if (e instanceof FlagNotFoundError) {
+    console.log(e.flagKey); // "missing"
+  }
+}
+```
+
+## Rate limit
+
+`FlagRateLimitError` includes `retryAfterSeconds` for the `Retry-After` header. Use it when returning 429 responses.

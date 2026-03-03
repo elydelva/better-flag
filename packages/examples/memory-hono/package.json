@@ -1,0 +1,20 @@
+{
+  "name": "@better-flag/example-memory-hono",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@better-flag/adapter-memory": "workspace:*",
+    "@better-flag/core": "workspace:*",
+    "@better-flag/handler-hono": "workspace:*",
+    "@better-flag/plugin-rate-limit": "workspace:*",
+    "hono": "^4.6.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

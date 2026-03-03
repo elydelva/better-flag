@@ -1,0 +1,82 @@
+---
+title: Drizzle Adapter
+description: Drizzle ORM adapter — PostgreSQL and SQLite.
+---
+
+## When to use
+
+Use the Drizzle adapter when:
+- **Production** — Persist flags in your database
+- **Multi-instance** — Data shared across server instances
+- **Already using Drizzle** — Same DB, same migrations
+
+## Installation
+
+```bash
+bun add @better-flag/adapter-drizzle drizzle-orm
+```
+
+## Usage
+
+```ts
+import { betterFlag } from "@better-flag/core";
+import { drizzleAdapter } from "@better-flag/adapter-drizzle";
+import { drizzle } from "drizzle-orm/node-postgres";
+
+const db = drizzle(connectionString);
+
+const flagEngine = betterFlag({
+  adapter: drizzleAdapter(db, {
+    provider: "pg",
+    tablePrefix: "bf_",
+  }),
+});
+```
+
+For SQLite:
+
+```ts
+import { drizzle } from "drizzle-orm/bun-sqlite";
+
+const db = drizzle(sqliteDb);
+
+const flagEngine = betterFlag({
+  adapter: drizzleAdapter(db, {
+    provider: "sqlite",
+    tablePrefix: "bf_",
+  }),
+});
+```
+
+## Options
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `provider` | `"pg"` \| `"sqlite"` | Database provider |
+| `tablePrefix` | string | Table prefix (default: `bf_`) |
+| `generateId` | () => string | ID generator (if needed) |
+| `plugins` | SchemaContributor[] | Schema contributors for plugin tables |
+
+## Schema
+
+Use `buildFlagsSchema` to create the Drizzle schema:
+
+```ts
+import { buildFlagsSchema } from "@better-flag/adapter-drizzle";
+
+const schema = buildFlagsSchema([], {
+  provider: "pg",
+  tablePrefix: "bf_",
+});
+```
+
+Tables created: `bf_flags` (and plugin tables if contributors are passed).
+
+## Migrations
+
+Include the flags schema in your Drizzle migrations. The adapter does not run migrations automatically — you manage your schema. Use `@better-flag/cli` to generate schema. See [CLI](/docs/cli).
+
+## Next steps
+
+- [CLI](/docs/cli) — Schema generation and migrations
+- [Adapters](/docs/adapters) — Overview
