@@ -1,11 +1,11 @@
 {
   "name": "@better-flag/types",
   "version": "0.0.1",
-  "description": "Shared types for better-flags",
+  "description": "Shared types for better-flag",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/elydelva/better-flags",
+    "url": "https://github.com/elydelva/better-flag",
     "directory": "packages/types"
   },
   "publishConfig": {

@@ -1,12 +1,12 @@
 {
-  "name": "better-flags",
+  "name": "better-flag",
   "private": true,
   "version": "0.0.0",
   "description": "Headless feature flags engine for TypeScript — flags, rollout, targeting, adapters. Interface-first like Better Auth.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/elydelva/better-flags"
+    "url": "https://github.com/elydelva/better-flag"
   },
   "workspaces": ["packages/*", "packages/examples/*", "apps/*"],
   "scripts": {

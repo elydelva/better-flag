@@ -1,7 +1,7 @@
 {
   "name": "@better-flag/adapter-redis",
   "version": "0.0.1",
-  "description": "Redis adapter for better-flags using Bun.redis",
+  "description": "Redis adapter for better-flag using Bun.redis",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

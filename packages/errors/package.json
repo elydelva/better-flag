@@ -1,11 +1,11 @@
 {
   "name": "@better-flag/errors",
   "version": "0.0.1",
-  "description": "Error classes for better-flags",
+  "description": "Error classes for better-flag",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/elydelva/better-flags",
+    "url": "https://github.com/elydelva/better-flag",
     "directory": "packages/errors"
   },
   "publishConfig": {

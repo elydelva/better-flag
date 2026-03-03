@@ -1,11 +1,11 @@
 {
   "name": "@better-flag/core",
   "version": "0.0.1",
-  "description": "Core flag engine and factory for better-flags",
+  "description": "Core flag engine and factory for better-flag",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/elydelva/better-flags",
+    "url": "https://github.com/elydelva/better-flag",
     "directory": "packages/core"
   },
   "publishConfig": {

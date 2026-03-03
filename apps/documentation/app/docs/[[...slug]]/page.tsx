@@ -11,7 +11,7 @@ type PageProps = {
 };
 
 const GITHUB_OWNER = "elydelva";
-const GITHUB_REPO = "better-flags";
+const GITHUB_REPO = "better-flag";
 const DOCS_PATH_PREFIX = "apps/documentation/content/docs";
 
 async function getLastEdit(filePath: string): Promise<Date | null> {

@@ -1,4 +1,4 @@
-# better-flags
+# better-flag
 
 A **headless feature flags engine** for TypeScript/JavaScript. Define flags (boolean, string, variant) with rollout, targeting, and schedule — without coupling to a specific framework or database. Same philosophy as better-auth — interface-first.
 

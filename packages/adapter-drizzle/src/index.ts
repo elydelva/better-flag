@@ -31,7 +31,7 @@ interface DrizzleDbLike {
 }
 
 /**
- * Drizzle ORM adapter for better-flags. Supports PostgreSQL and SQLite via translateToDrizzle.
+ * Drizzle ORM adapter for better-flag. Supports PostgreSQL and SQLite via translateToDrizzle.
  * Uses buildSchema from @better-agnostic/schema with base flags contribution + plugins.
  */
 export function drizzleAdapter(db: DrizzleDbLike, options: DrizzleAdapterOptions): FlagAdapter {

@@ -1,12 +1,12 @@
 ---
 title: Comparison
-description: How better-flags compares to building from scratch, third-party SDKs, and custom solutions.
+description: How better-flag compares to building from scratch, third-party SDKs, and custom solutions.
 icon: Scale
 ---
 
 ## vs. Building from Scratch
 
-| Aspect | From Scratch | better-flags |
+| Aspect | From Scratch | better-flag |
 |--------|--------------|--------------|
 | **Evaluation pipeline** | Implement override, rules, rollout logic | Built-in plugin-based evaluators with priority |
 | **Storage** | Lock-in to one DB | Adapter pattern — memory, file, Redis, Drizzle |
@@ -16,7 +16,7 @@ icon: Scale
 
 ## vs. Third-Party Feature Flag SaaS (LaunchDarkly, Unleash, etc.)
 
-| Aspect | Third-Party SaaS | better-flags |
+| Aspect | Third-Party SaaS | better-flag |
 |--------|------------------|--------------|
 | **Ownership** | Your data lives in their infra | Your DB, your rules |
 | **Customization** | Limited by their API | Full control — plugins, custom evaluators |
@@ -26,7 +26,7 @@ icon: Scale
 
 ## vs. Simple Config / Env Vars
 
-| Aspect | Config / Env | better-flags |
+| Aspect | Config / Env | better-flag |
 |--------|--------------|--------------|
 | **Per-user** | Not supported | Overrides, targeting rules, rollout |
 | **Dynamic** | Requires deploy | Update via API, adapter sync |
@@ -35,7 +35,7 @@ icon: Scale
 
 ## Philosophy Alignment
 
-**better-flags** follows the same design principles as **Better Auth** and **better-conversation**:
+**better-flag** follows the same design principles as **Better Auth** and **better-conversation**:
 
 - **Interface-first** — Core defines contracts; adapters implement them.
 - **Zero vendor** — No external service required.

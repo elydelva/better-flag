@@ -33,6 +33,6 @@ const server = Bun.serve({
   fetch: app.fetch,
 });
 
-console.log(`better-flags example running at http://localhost:${server.port}`);
+console.log(`better-flag example running at http://localhost:${server.port}`);
 console.log("  GET  /api/flags");
 console.log("  POST /api/flags/evaluate (body: { key, context? })");
